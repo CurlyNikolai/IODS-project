@@ -11,3 +11,13 @@ date()
 ```
 The text continues here.
 
+### Some thoughts
+
+Never thought that I was actually going to do stuff in R. Up until now, I have done most of my work in Python.
+I feel excited, but at the same time a bit worried that this will be very much work. Everything will probably be alright, and I will have gained
+a lot of useful knowledge by the end of this course.
+
+I found this course while desperately looking for the final study credits that I need to finish my doctoral studies. I have had plenty of struggle
+trying to find something that actually seems useful for my future. This just might be it.
+
+My github repo: https://github.com/CurlyNikolai/IODS-project

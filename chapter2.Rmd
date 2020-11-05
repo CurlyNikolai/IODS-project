@@ -1,13 +1,99 @@
-# Insert chapter 2 title here
-
-*Describe the work you have done this week and summarize your learning.*
-
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+# RStudio Exercise 2
 
 ```{r}
 date()
 ```
 
-Here we go again...
+The data set we are going to use for this exercise is found in the **data** folder named **learning2014.txt**. 
+
+So let's read the file and move on to presenting it.
+
+```{r}
+lrn14 <- read.csv("data/learning2014.txt")
+```
+
+\
+
+### 1. Structure and dimensions of the data:
+
+The dataset presents results from a questionnaire where participants answered a set of questions regarding deep, surface and strategic learning. The dataset holds information
+on participants gender, age, attitude and exam points.
+
+The structure of the data is as follows:
+
+```{r}
+str(lrn14)
+```
+And the dimensions:
+
+```{r}
+dim(lrn14)
+```
+\
+
+### 2. Graphical representation and summary of the data
+
+The following graph shows a nice representation of all of the data, colour coded according to gender. We can see all of the variables plotted against each other as scatter plots, 
+the independent variables distributions, and the correlations between variables. 
+
+```{r}
+library(GGally)
+library(ggplot2)
+p <- ggpairs(lrn14, mapping = aes(col=gender, alpha=0.3), lower = list(combo = wrap("facethist", bins = 20)))
+p
+```
+\
+
+The summary of all variables in the data can be viewed below.
+```{r}
+summary(lrn14)
+```
+\
+
+### 3. Fitting a regression model 
+
+For this part we will be fitting a regression model by using the exam points as our target variable, and the """!"#"#¤!"¤¤#R!"¤ as explanatory variables 
+(mainly because I did not want to repeat what was done in datacamp). Below the model is created, and its summary printed out.
+
+```{r}
+model <- lm(points ~ gender + age + attitude, data = lrn14)
+summary(model)
+```
+\
+As we can see above in the summary, the gender and attitude are not significant in modelling the exam points (which is a good thing!), when compared to the attitude. So let's remove
+gender and age from the model, essentially making the model a linear one:
+
+```{r}
+model <- lm(points ~ attitude, data = lrn14)
+```
+We can also easily plot this:
+
+```{r}
+qplot(attitude, points, data = lrn14) + geom_smooth(method = "lm")
+```
+
+\
+### 4. Relationship between exam points and attitude
+
+The model can be summarized as follows:
+
+```{r}
+summary(model)
+```
+
+As stated earlier, there was a correlation between attitudes and exam points, due to the low p-value. The residuals are quite high, meaning that we have quite spread out data, which
+can also be seen from the model plot earlier. Due to the large spread, the multiple R-squared value is also quite low. But this does not mean necessarily that it is a bad model!
+
+\
+### 5. Model validation
+
+The residuals vs fitted values, normal qq-plot and residuals vs leverage plots can be viewed below:
+
+```{r}
+par(mfrow=c(2,2))
+plot(model, which=c(1,2,5))
+```
+
+
+The residuals vs leverage plot seems to be in such small scale on the x-axis, that everything seems fine. The same can be said of the residuals vs fitted plot, where the data seem quite 
+evenly clumped together. However, from the qq-plot we can see that the data deviates somewhat in the beginning and end from the line. This means that the normality assumption questionable. 

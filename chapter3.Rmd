@@ -1,0 +1,73 @@
+# RStudio Exercise 3
+
+```{r}
+date()
+```
+
+
+\
+\
+
+### Read and present data
+
+The data is read in and the variable names presented in the below code block.
+
+```{r}
+alc <- read.csv("data/alc.txt", header=TRUE, sep=",")
+colnames(alc)
+```
+
+The data presents the alcohol consumption of individuals, and their grades from three different periods, for persons with various other attributes. The grades are stored in the G1, G2 and G3 variables, and the alcohol consumption are stored in the Dalc, Walc, alc_use and high_use variables. Dalc and Walc separate into alcohol consumption during weekdays and weekends, repsectively, while alc_use is their mean value and high_use indicates if the alcohol use is excessive. The rest of the variables hold different information. For example, the sex, family size and many more.
+
+\
+\
+
+### Choosing 4 variables
+
+The variables age, sex, romantic and famrel variables were chosen for this analysis. These were chosen to gain insight in the social impact on an individuals alcohol consumption. Age, quite obviously does have an effect, due to the restriction of alcohol consumption for minors, while the gender, romantic and famrel variables can show insight in what kind of an effect social life has on an individuals alcohol consumption. One might think, for example, that a single person would go out more in search of a partner, in the bar setting, or that a bad relationship with ones family might raise ones thirst. These of course do not have to be true, but we are here to investigate whether there is any statistical significance to these ideas. 
+
+
+\
+\
+
+### Numerically and graphically explore the variables
+
+The chosen variables age, famrel, romantic and sex, as well as the variables alc_use and high_use are presented as bar charts below.
+
+```{r}
+library(tidyr); library(dplyr); library(ggplot2); library(GGally)
+alc_chosen <- select(alc, one_of(c("sex", "age", "romantic", "famrel", "alc_use", "high_use")))
+gather(alc_chosen) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar()
+```
+
+
+Let's do a similar summary plot as in the previous exercise:
+
+
+```{r}
+ggpairs(alc_chosen, mapping = aes(col=sex, alpha=0.3), lower = list(combo = wrap("facethist", bins = 20)))
+```
+
+\
+
+### Logistic regression
+
+Let's fit a logistic regression model to our data. we'll set the high_use variables as our target variable.
+
+```{r}
+m <- glm(high_use ~ sex + age + romantic + famrel, data = alc, family = "binomial")
+summary(m)
+```
+Above we can see the summary of our model. From this information it would seem that the only variable not significant for determining the high/low use is the romantic variable.Let's then calculate the coefficient odds ratios and the confident intervals:
+
+```{r}
+OR <- coef(m) %>% exp
+CI <- exp(confint(m)) %>% exp
+cbind(OR,CI)
+```
+
+
+\
+\
+
+Due to lack of time, and other deadlines I had to cut my work short here for this week :( 

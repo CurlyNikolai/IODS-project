@@ -1,0 +1,172 @@
+
+# Exercise 4 Clustering and classification
+
+```{r}
+# This is a so-called "R chunk" where you can write R code.
+
+date()
+
+```
+
+```{r}
+library(GGally)
+library(ggplot2)
+```
+
+\
+
+### 4.2 Load the Boston data
+
+Let's begin by loading the Boston data from the MASS package:
+
+```{r}
+library(MASS)
+data("Boston")
+```
+
+Let's take a look at the dimensions of the data:
+
+```{r}
+dim(Boston)
+```
+So we can see that there are 14 variables, and 506 observations. Then let's look at the structure of the data:
+
+```{r}
+str(Boston)
+```
+
+The data shows information on housing in an are called Boston Mass, gathered by the U.S Census Service [(link)](https://www.cs.toronto.edu/~delve/data/boston/bostonDetail.html). Each observation holds information on a Boston suburb or town with 14 variables. The variables include for example the per capita crime rate ("crim"), average number of rooms per dwelling ("RM") and a pupil-teacher ratio ("PTRATIO"). For a full description of the data, please read for example [this link](https://www.cs.toronto.edu/~delve/data/boston/bostonDetail.html).
+
+Let's change the "chas" varable into a categorical one, since it takes values of 0 or 1 (just for plotting, we'll change is back to numeric in a bit). 
+
+```{r}
+Boston$chas = as.factor(Boston$chas)
+```
+
+\
+
+### 4.3 Graphical overview
+
+Let's plot all of the variables against each other and their correlations:
+
+```{r, fig.width=16, fig.height=16}
+options(digits=3)
+p1 <- ggpairs(Boston, mapping=aes(), diag=list(continuous="barDiag"), lower=list(continuous="smooth"))
+suppressMessages(print(p1))
+```
+
+From the overwhelming graph above we can see many different plots, such as the distributions of each variable on the diagonal. The correlations are on the upper side of the plot, while the scatter plots between each variable are on the bottom side of the plot.
+
+For example when comparing the nitric oxide concentration with units build before 1940, we can see that a higher proportion of old units leads to a rise in the nitric oxide concentration. Another example is that we can see with an increasing median-value of owner occupied homes and increase in the average amount of rooms per dwelling, which would make sense in terms of a more expensive hous having more rooms in it. 
+
+Let's print out the summaries of each variable:
+
+```{r}
+summary(Boston)
+```
+From here we can for example see that high crime rates are rare than low ones, if we consider that the max value is 89.0, and the median is at 0.3. I could not find information on what exact number of people the crime per capita is, only that it is the crime per capita per town. I guess it has to still be divided by 100 000 or something, otherwise it can't make sense. 
+
+\
+
+### 4.4 Scaling the data
+
+Let's standardize the data by scaling it with the scale() function  (also turn the "chas" variable back to numeric for the scaling), and print out the summary of the scaled data:
+
+```{r}
+Boston$chas = as.numeric(Boston$chas)
+boston_scaled <- scale(Boston)
+boston_scaled <- as.data.frame(boston_scaled)
+summary(boston_scaled)
+```
+From the summary of the scaled data, we can see that all variables have a new mean at 0.0, meaning that we have centered all of it. Now let's transform the crime rate into a categorical variable, using the quantiles as breaking points (just as in the datacamp exercises), so that the crime rate is given as "low", "med_low", "med_high" and "high":
+
+```{r}
+bins <- quantile(boston_scaled$crim)
+crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, labels=c("low", "med_low", "med_high", "high"))
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+boston_scaled <- data.frame(boston_scaled, crime)
+```
+Now let's create test and training sets of the data, just like we did in the datacamp exercises. We'll pick randomly 80% of the data for the training set, and the rest goes to the testing set:
+
+```{r}
+n <- nrow(boston_scaled) #number of rows
+ind <- sample(n,  size = n * 0.8) #random indices of 80% of the datapoints
+
+train <- boston_scaled[ind,] #create training data
+test <- boston_scaled[-ind,] #create testing data
+
+correct_classes <- test$crime #Store the correct classes from test data in its own variable
+test <- dplyr::select(test,-crime) #Remove the correct classes from the test data
+```
+
+\
+
+### 4.5 Fitting LDA
+
+Now that we have our test and training sets of the scaled boston data, let's fit a linear discriminant analysis on the training set. The categorical crime rate will work as out target variable, while all other variables are predictors. After the fitting, let's plot the LDA with the help of the arrow function from the datacamp exercise:
+
+```{r}
+lda.fit <- lda(crime ~ ., data = train)
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+classes <- as.numeric(train$crime)
+plot(lda.fit, dimen = 2, col=classes, pch=classes)
+lda.arrows(lda.fit, myscale = 5)
+```
+For some reason the x-axis seems to be flipped, when comparing with the datacamp plot. 
+
+### 4.6 Prediction
+
+We already removed the correct classes from the test data, and stored them in their own variable, in the previous section. Let's now predict the classes with our LDA model, and cross tabulate our predictions with the correct classes:
+
+```{r}
+lda.pred <- predict(lda.fit, newdata=test)
+table(correct=correct_classes, predicted=lda.pred$class)
+```
+We can see from the crosstabulation that we have 28 wrongly predicted classes out of a 102. In percentages we would have a success rate of about 72% with out model, which isn't too bad with such a small dataset, but still could be better. 
+
+### 4.7 k-means
+
+Let's reload and standardize the Boston dataset:
+
+```{r}
+data("Boston")
+boston_scaled <- scale(Boston)
+boston_scaled <- as.data.frame(boston_scaled)
+```
+Now we'll calculate the manhattan distance matrix for the scaled dataset:
+
+```{r}
+dist <- dist(Boston, method="manhattan")
+summary(dist)
+```
+Then let's run the k-means algorithm on our dataset, starting with three cluster centers, and plot the clustering for some of the variable plots:
+
+```{r}
+km <- kmeans(Boston, centers = 3)
+pairs(Boston[6:10], col=km$cluster)
+```
+From this it is difficult to determine whether the number of clusters is optimal or no. Simply by changing the clusters number and replotting, is probably not going to help either, so let's investigate the optimal number of clusters by plotting the within cluster sum of squares (WCSS) against the number of clusters. The optimal number of clusters should be found after the WCSS has dropped radically. 
+
+```{r}
+twcss <- sapply(1:10, function(k){kmeans(Boston, k)$tot.withinss})
+qplot(x=1:10, y=twcss, geom='line')
+```
+From the plot we can see that the WCSS has dropped radically after x=2, so that is our optimal cluster number. So let's rerun the k-means algorithm with this optimal number of clusters and plot some of the results.
+
+```{r}
+km <- kmeans(Boston, centers = 2)
+pairs(Boston[6:10], col=km$cluster)
+```
+```{r}
+pairs(Boston[7:14], col=km$cluster)
+```
+The k-means algorithm seems to do well at least most of the very clear cases where there are two clusters in the data. In some of the plots there are some qurious data points that seem to be clearly in the wrong cluster, see for example some of the "rad" plots where there are a couple of black data points inside the red cluster. 
+
+That's it for this week, sadly I have no more time for the bonus exercises. See you next week!

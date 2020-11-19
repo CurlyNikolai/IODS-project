@@ -57,7 +57,7 @@ suppressMessages(print(p1))
 
 From the overwhelming graph above we can see many different plots, such as the distributions of each variable on the diagonal. The correlations are on the upper side of the plot, while the scatter plots between each variable are on the bottom side of the plot.
 
-For example when comparing the nitric oxide concentration with units build before 1940, we can see that a higher proportion of old units leads to a rise in the nitric oxide concentration. Another example is that we can see with an increasing median-value of owner occupied homes and increase in the average amount of rooms per dwelling, which would make sense in terms of a more expensive hous having more rooms in it. 
+For example when comparing the nitric oxide concentration with units built before 1940, we can see that a higher proportion of old units leads to a rise in the nitric oxide concentration. Another example is that we can see with an increasing median-value of owner occupied homes and increase in the average amount of rooms per dwelling, which would make sense in terms of a more expensive hous having more rooms in it. 
 
 Let's print out the summaries of each variable:
 

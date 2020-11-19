@@ -1,4 +1,4 @@
-# RStudio Exercise 3
+# Exercise 3
 
 ```{r}
 date()
@@ -8,7 +8,7 @@ date()
 \
 \
 
-### Read and present data
+### 3.1 Read and present data
 
 The data is read in and the variable names presented in the below code block.
 
@@ -22,7 +22,7 @@ The data presents the alcohol consumption of individuals, and their grades from 
 \
 \
 
-### Choosing 4 variables
+### 3.2 Choosing 4 variables
 
 The variables age, sex, romantic and famrel variables were chosen for this analysis. These were chosen to gain insight in the social impact on an individuals alcohol consumption. Age, quite obviously does have an effect, due to the restriction of alcohol consumption for minors, while the gender, romantic and famrel variables can show insight in what kind of an effect social life has on an individuals alcohol consumption. One might think, for example, that a single person would go out more in search of a partner, in the bar setting, or that a bad relationship with ones family might raise ones thirst. These of course do not have to be true, but we are here to investigate whether there is any statistical significance to these ideas. 
 
@@ -30,7 +30,7 @@ The variables age, sex, romantic and famrel variables were chosen for this analy
 \
 \
 
-### Numerically and graphically explore the variables
+### 3.3 Numerically and graphically explore the variables
 
 The chosen variables age, famrel, romantic and sex, as well as the variables alc_use and high_use are presented as bar charts below.
 
@@ -50,7 +50,7 @@ ggpairs(alc_chosen, mapping = aes(col=sex, alpha=0.3), lower = list(combo = wrap
 
 \
 
-### Logistic regression
+### 3.4 Logistic regression
 
 Let's fit a logistic regression model to our data. we'll set the high_use variables as our target variable.
 

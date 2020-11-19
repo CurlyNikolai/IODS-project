@@ -1,4 +1,4 @@
-# RStudio Exercise 2
+# Exercise 2
 
 ```{r}
 date()
@@ -14,7 +14,7 @@ lrn14 <- read.csv("data/learning2014.txt")
 
 \
 
-### 1. Structure and dimensions of the data:
+### 2.1 Structure and dimensions of the data:
 
 The dataset presents results from a questionnaire where participants answered a set of questions regarding deep, surface and strategic learning. The dataset holds information
 on participants gender, age, attitude and exam points.
@@ -31,7 +31,7 @@ dim(lrn14)
 ```
 \
 
-### 2. Graphical representation and summary of the data
+### 2.2 Graphical representation and summary of the data
 
 The following graph shows a nice representation of all of the data, colour coded according to gender. We can see all of the variables plotted against each other as scatter plots, 
 the independent variables distributions, and the correlations between variables. 
@@ -50,7 +50,7 @@ summary(lrn14)
 ```
 \
 
-### 3. Fitting a regression model 
+### 2.3 Fitting a regression model 
 
 For this part we will be fitting a regression model by using the exam points as our target variable, and the """!"#"#¤!"¤¤#R!"¤ as explanatory variables 
 (mainly because I did not want to repeat what was done in datacamp). Below the model is created, and its summary printed out.
@@ -73,7 +73,7 @@ qplot(attitude, points, data = lrn14) + geom_smooth(method = "lm")
 ```
 
 \
-### 4. Relationship between exam points and attitude
+### 2.4 Relationship between exam points and attitude
 
 The model can be summarized as follows:
 
@@ -85,7 +85,7 @@ As stated earlier, there was a correlation between attitudes and exam points, du
 can also be seen from the model plot earlier. Due to the large spread, the multiple R-squared value is also quite low. But this does not mean necessarily that it is a bad model!
 
 \
-### 5. Model validation
+### 2.5 Model validation
 
 The residuals vs fitted values, normal qq-plot and residuals vs leverage plots can be viewed below:
 

@@ -50,7 +50,6 @@ Boston$chas = as.factor(Boston$chas)
 Let's plot all of the variables against each other and their correlations:
 
 ```{r, fig.width=16, fig.height=16}
-options(digits=3)
 p1 <- ggpairs(Boston, mapping=aes(), diag=list(continuous="barDiag"), lower=list(continuous="smooth"))
 suppressMessages(print(p1))
 ```
@@ -89,6 +88,7 @@ boston_scaled <- data.frame(boston_scaled, crime)
 Now let's create test and training sets of the data, just like we did in the datacamp exercises. We'll pick randomly 80% of the data for the training set, and the rest goes to the testing set:
 
 ```{r}
+set.seed(4313) #set seed to obtain same result in predictions (for writing purposes, comment out if you want different results)
 n <- nrow(boston_scaled) #number of rows
 ind <- sample(n,  size = n * 0.8) #random indices of 80% of the datapoints
 
@@ -129,7 +129,7 @@ We already removed the correct classes from the test data, and stored them in th
 lda.pred <- predict(lda.fit, newdata=test)
 table(correct=correct_classes, predicted=lda.pred$class)
 ```
-We can see from the crosstabulation that we have 28 wrongly predicted classes out of a 102. In percentages we would have a success rate of about 72% with out model, which isn't too bad with such a small dataset, but still could be better. 
+We can see from the crosstabulation that we have 34 wrongly predicted classes out of a 102. In percentages we would have a success rate of about 66.6% with out model, which isn't too bad with such a small dataset, but still could be better. The results reported in the previous sentence is valid if the seed for the random selection of data for training and test data sets hasn't changed. 
 
 ### 4.7 k-means
 

@@ -1,5 +1,5 @@
 
-# Exercise 4 Clustering and classification
+# Exercise 4
 
 ```{r}
 # This is a so-called "R chunk" where you can write R code.

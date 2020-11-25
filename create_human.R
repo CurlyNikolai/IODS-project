@@ -77,7 +77,7 @@ colnames(human)
 #5.2
 #keep specifiec columns and rename them according to exercise (to minimize confusion)
 keep = c("Country", "edu2Rat", "labRat", "eduExp", "lifeExp", "GNI", "MMR", "ABR", "rep")
-human <- select(data, one_of(keep))
+human <- select(human, one_of(keep))
 colnames(human) <- c("Country", "Edu2.FM", "Labo.FM", "Edu.Exp", "Life.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F")
 
 #5.3

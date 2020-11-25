@@ -8,20 +8,91 @@ date()
 
 ```
 
-```{r}
+```{r message=FALSE}
 library(GGally)
 library(ggplot2)
+library(FactoMineR)
+library(dplyr)
+library(tidyr)
 ```
 
 
 
-### 5.1
+### 5.1 Graphical overview, and summary of data
+
+Let's load the human data, plot the variables and look at their summaries:
 
 ```{r}
-human <- read.csv("data/human.dat", header=TRUE, sep=",")
-colnames(human)
-rownames(human) <- human$X
-human <- select(human, -X)
-ggpairs(human)
+human <- read.csv("data/human.dat", header=TRUE, row.names=1, sep=",")
+p1 <- ggpairs(human, mapping=aes(), lower=list(continuous="smooth"))
+suppressMessages(print(p1))
+summary(human)
+```
+From the diagonal in the matrix plot we can see the distributions of each variable. For example we can see that the life expectancy peaks at less than 80 years, and that the expected years of education peaks at less than 15. The scatter plots show the inter-variable dependencies, with a linear fit included. The linear fit seems descriptive for some of the plots, like for the expected years of education vs. life expectancy, but not for others, such as in the ratio of education between females and males vs. the ratio of labour force between females and males. 
+
+In the summary of the data we can see the detailed information on the variable means, quantiles, as well as their minima and maxima. We can for example see the mean life expectancy to be 71.65 years, and the mean percentage of female representation in parliament at 20.91 percent. 
+
+\
+
+### 5.2 PCA on the non-standardized data
+
+Let's run PCA on our data, while its not standardized:
+
+```{r}
+pca_human <- prcomp(human)
+pca_human
+```
+We can see the variability of each principal component in the prinout of the pca_human variable. There we can see that the first two principal components have the largest variability. Let's do a biplot with the first two principal components as out x- and y-axes:
+
+```{r, warning=FALSE}
+s <- summary(pca_human)
+pca_pr <- round(100*s$importance[2, ], digits = 1)
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
 ```
 
+We can see that the non-standardized data is very difficult to read from this plot, and all of the arrows seem to point parallel with the first principal component, as if it would hold all of the variance. On the axes, the percentages which the principal components capture are shown, and PC1 appears to be capturing 100%, which is wrong.
+
+### 5.3 PCA on the standardized data
+
+Now let's standardize the data, run the PCA analysis, and look at the biplot again.´
+
+```{r, fig.height=8, fig.width=8}
+human_std <- scale(human)
+pca_human <- prcomp(human_std)
+pca_human
+s <- summary(pca_human)
+pca_pr <- round(100*s$importance[2, ], digits = 1)
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+```
+Now, we can see a better capturing of the variance between the first two principal components. The first one captures 53.6, while the second captures 16.2%, while the rest is reserved for the rest of the components not see in this plot. The scaling of the variables seem to be important for the PCA of this data. From the arrows we can see that there is a high positive correlation between the variables Edu.Exp, Edu2.FM, Life.Exp and GNI, a high positive correlation between the variables Parli.F and Labo.FM, and a high positive correlation between Mat.Mor and Ado.Birth. We can also see that PC1 captures most of its variance from Edu.Exp, Edu2.FM, Life.Exp, GNI, Mat.Mor and Ado.Birth, while PC2 captures most of its variance from Parli.F and Labo.FM
+
+### 5.4 Personal interpretations based on standardized PCA biplot. 
+
+It would seem that life expectancy, expected years of education, ratio of education between females and males are strongly correlated. This would make sense when thinking that countries with higher level of education would have longer life expectancy, as well as a larger gross national income. If we look at the countries on the side these variable arrows point to, we can see countries that have been classified as "developed", such as Norway, Australia and Japan. On the other end of the arrows we have countries such as Sudan, Sierra Leone and Afghanistan that have been classified as "third-world" countries that have at some point been under occupation by western countries. The strongly correlated maternal mortality and adolescent birthrate are also correlated, and if we view the graphical overview of the data, it would seem that a higher adolescent birthrate might lead to a higher maternal mortality, Now we can see the reverse trend that these arrows point to the less developed countries, while the more developed countries are in the other end. The female representation in parliament, and female/male labour ratio are correlated and point upwards where we can find countries such as Norway, Cuba and Rwanda, while in the other end there are countries such as United Arab Emirate and Yemen, where women have less rights. 
+
+### 5.5 Tea time
+
+Let's load the tea data from the FactoMineR package and print its summary, structure and dimensions. Let's also restrict ourselves to the same variables as in the datacamp exercises, and plot their bar plots:
+
+```{r}
+data(tea)
+
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
+
+tea_time <- dplyr::select(tea, one_of(keep_columns))
+summary(tea_time)
+str(tea_time)
+dim(tea_time)
+gather(tea_time) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free")  + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+
+```
+Then let's run MCA on our data:
+
+```{r}
+mca <- MCA(tea_time, graph= FALSE)
+summary(mca)
+plot(mca, invisible=c("ind"), habillage="quali")
+```
+From the above plot we can see the similarities between the variables. E.g. the unpackaged and tea shop variables are similar to each other, but not to the rest of the variables. 

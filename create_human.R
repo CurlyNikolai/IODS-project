@@ -62,6 +62,10 @@ write.csv(human, "data/human.dat", row.names = FALSE)
 
 ###EXERCISE 5 STARTS HERE
 
+# Emil Levo
+# 25.11.2020
+# Data wrangling script for IODS RStudio Exercise 5
+
 #The data holds various information on different countries, such as the humand development index, rank, life expectancy, years of education, 
 #gender inequality index, female and male education and labour percentages and more. The more explanatory variables can be seen above in the renaming, and
 #the technical notes provided at the top of this document might be of use

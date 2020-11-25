@@ -1,0 +1,27 @@
+
+# Exercise 5
+
+
+```{r}
+
+date()
+
+```
+
+```{r}
+library(GGally)
+library(ggplot2)
+```
+
+
+
+### 5.1
+
+```{r}
+human <- read.csv("data/human.dat", header=TRUE, sep=",")
+colnames(human)
+rownames(human) <- human$X
+human <- select(human, -X)
+ggpairs(human)
+```
+

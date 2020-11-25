@@ -58,7 +58,45 @@ human <- inner_join(hd, gii, by="Country")
 dim(human)
 write.csv(human, "data/human.dat", row.names = FALSE)
 
-#Test to see if the data is correct
-#data <- read.csv("data/human.dat", header=TRUE, sep=",")
-#str(data)
-#dim(data)
+
+
+###EXERCISE 5 STARTS HERE
+
+#The data holds various information on different countries, such as the humand development index, rank, life expectancy, years of education, 
+#gender inequality index, female and male education and labour percentages and more. The more explanatory variables can be seen above in the renaming, and
+#the technical notes provided at the top of this document might be of use
+
+human <- read.csv("data/human.dat", header=TRUE, sep=",")
+
+#5.1
+#Transform GNI to numeric (remove commas marking thousands)
+library(stringr)
+human$GNI <- str_replace(human$GNI, pattern=",", replace ="") %>% as.numeric(human$GNI)
+colnames(human)
+
+#5.2
+#keep specifiec columns and rename them according to exercise (to minimize confusion)
+keep = c("Country", "edu2Rat", "labRat", "eduExp", "lifeExp", "GNI", "MMR", "ABR", "rep")
+human <- select(data, one_of(keep))
+colnames(human) <- c("Country", "Edu2.FM", "Labo.FM", "Edu.Exp", "Life.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F")
+
+#5.3
+# Remove NA values with the help of completeness indicator
+human <- filter(human, complete.cases(human))
+
+#5.4
+#Remove data taken from regions instead of countries (7 last entries)
+#tail(human, 10)
+last <- nrow(human)-7
+human <- human[1:last, ]
+
+#5.5
+#Remove country variable, and set rownames to country names
+rownames(human) <- human$Country
+human <- select(human, -Country)
+
+#Data should now have 155 observations and 8 variables:
+dim(human)
+
+#Overwrite old human data:
+write.csv(human, "data/human.dat", row.names = TRUE)

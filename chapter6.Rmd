@@ -13,6 +13,7 @@ library(tidyr)
 library(dplyr)
 library(GGally)
 library(ggplot2)
+library(lme4)
 ```
 
 
@@ -153,6 +154,9 @@ BPRSL$treatment <- factor(BPRSL$treatment)
 BPRSL$subject <- factor(BPRSL$subject)
 glimpse(BPRSL)
 ```
+### 6.2.1 Graphical overview
+
+Let's plot the data for each treatment group:
 
 ```{r}
 ggplot(BPRSL, aes(x = week, y = bprs, linetype = subject)) +
@@ -163,3 +167,58 @@ ggplot(BPRSL, aes(x = week, y = bprs, linetype = subject)) +
   scale_y_continuous(limits = c(min(BPRSL$bprs), max(BPRSL$bprs)))
 ```
 
+In the plot above, we can see the brief psychiatric rating scale (BPRS) for 40 different male subjects divided into two treatment groups over a time period of 9 weeks. We can see a lot of fluctuation in the data, an as seen in the datacamp exercise, we have one outlier in the second treatment group. 
+
+### 6.2.2 Linear model
+
+Let's create a linear model of our data and view its summary:
+
+```{r}
+BPRS_reg <- lm(bprs ~ week + treatment, data=BPRSL)
+summary(BPRS_reg)
+```
+### 6.2.3 Random intercept model
+
+Let's then create a random intercept model:
+
+```{r}
+BPRS_ref <- lmer(bprs ~ week + treatment + (1 | subject), data = BPRSL, REML=FALSE)
+summary(BPRS_ref)
+```
+### 6.2.4 Random slope model
+
+And a random slope model:
+
+```{r}
+BPRS_ref1 <- lmer(bprs ~ week + treatment + (week | subject), data=BPRSL, REML=FALSE)
+summary(BPRS_ref1)
+anova(BPRS_ref1, BPRS_ref)
+```
+### 6.2.5 Random intercept and slope with interaction
+
+Let's finally to the random intercept and slope with interction, and plot the data in its vanilla format, and with the fitted data. 
+
+```{r}
+BPRS_ref2 <- lmer(bprs ~ week * treatment + (week | subject), data=BPRSL, REML=FALSE)
+summary(BPRS_ref2)
+anova(BPRS_ref2, BPRS_ref1)
+```
+
+```{r}
+ggplot(BPRSL, aes(x = week, y = bprs, group=treatment)) +
+  geom_line(aes(linetype = treatment)) +
+  scale_x_continuous(name = "Time (weeks)", breaks = seq(0, 8, 2)) +
+  scale_y_continuous(name = "bprs") +
+  theme(legend.position = "top")
+```
+```{r}
+Fitted <- fitted(BPRS_ref2)
+BPRSL <- BPRSL %>%
+  mutate(Fitted)
+ggplot(BPRSL, aes(x = week, y = Fitted, group=treatment)) +
+  geom_line(aes(linetype = treatment)) +
+  scale_x_continuous(name = "Time (weeks)", breaks = seq(0, 8, 2)) +
+  scale_y_continuous(name = "bprs") +
+  theme(legend.position = "top")
+```
+I'm not completely sure of this analysis, I did not understand it in the datacamp exercises, and I understand it less in here. 

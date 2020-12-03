@@ -1,0 +1,165 @@
+
+# Exercise 6
+
+```{r}
+# This is a so-called "R chunk" where you can write R code.
+
+date()
+
+```
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(GGally)
+library(ggplot2)
+```
+
+
+### 6.1 The RATS data
+
+
+Let's first load the RATS data in its long form, and factor the categorical variables again. Then glimpse the data.
+
+```{r}
+RATSL <- read.csv("data/ratsl.dat", header=TRUE)
+RATSL$ID <- factor(RATSL$ID)
+RATSL$Group <- factor(RATSL$Group)
+RATSL$Group <- factor(RATSL$Group)
+glimpse(RATSL)
+```
+So we have five variables (actually four, the "WD" and "Time" variables are essentially the same) and 176 values for each. We have the id of each rat and which group it was in (corresponds with diet). During a period of 9 weeks (time variable) the bodyweight of the rats were measured ("Weight"). 
+
+### 6.1.1 Graphical overview
+Let's draw a similar plot as in the "individuals on the plot" part of the datacamp exercise:
+
+```{r}
+
+# Draw the plot
+ggplot(RATSL, aes(x = Time, y = Weight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) + 
+  scale_y_continuous(limits = c(min(RATSL$Weight), max(RATSL$Weight)))
+```
+In the plot we can see the development of bodyweight for the different individuals, divided in their own dietary groups. We can see that that the starting points in bodyweight differ for each group, and that the bodyweight increases over time in all groups, albeit maybe the strongest in group two. In group two we can see one individual clearly separated from the others (the one on the top of the others).  Actually, every group has one separated individual, but the one in the second group is the furthest from the rest. 
+
+### 6.1.2 Standardising RATSL
+
+Let's standardise the RATSL data by mutating a new variable "stdweight" into it, to address the tracking phenomenon. The resulting variable is going to have a mean of zero. 
+
+```{r}
+RATSL <- RATSL %>%
+  group_by(Time) %>%
+  mutate(stdweight = (Weight - mean(Weight))/sd(Weight) ) %>%
+  ungroup()
+
+glimpse(RATSL)
+```
+Now that the data is standardized, let's plot it:
+
+```{r}
+ggplot(RATSL, aes(x = Time, y = stdweight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  scale_y_continuous(name = "standardized rat weight")
+
+```
+### 6.1.3 The standard error
+
+Now let's calculate the average profiles of each group, with its standard errors. So first, let's calculate the standard error and the means of the weights in the different groups.
+
+```{r}
+n <- RATSL$Time %>% unique() %>% length()
+RATSS <- RATSL %>%
+  group_by(Group, Time) %>%
+  summarise( mean = mean(Weight), se = sd(Weight)/sqrt(n) ) %>%
+  ungroup()
+glimpse(RATSS)
+
+```
+Then let's plot the profiles: 
+
+```{r}
+ggplot(RATSS, aes(x = Time, y = mean, linetype = Group, shape = Group)) +
+  geom_line() +
+  scale_linetype_manual(values = c(1,2,3)) +
+  geom_point(size=3) +
+  scale_shape_manual(values = c(1,2,3)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, linetype="1"), width=0.3) +
+  theme(legend.position = c(0.5,0.5)) +
+  scale_y_continuous(name = "mean(Weight) +/- se(Weight)")
+```
+Now in the plot we can see the mean profiles for each group with correspondning standard errors. We can see the largest standard error in group two, which makes sense, since there was one indiviudal clearly separated from the rest in that group. 
+
+### 6.1.4 Outliers
+
+Looking at the mean as our summary measure, let's look out for outliers in days 2-63 (excluding the baseline day 1). We can expect to see one in each group, just by reviewing the first plot of all indiviuals in each group in the beginning of this chapter. So first let's create the summary measure (with the mean):
+
+```{r}
+RATSL62S <- RATSL %>%
+  filter(Time > 1) %>%
+  group_by(Group, ID) %>%
+  summarise( mean=mean(Weight) ) %>%
+  ungroup()
+
+```
+And then let's plot a boxplot showing the outliers:
+
+```{r}
+ggplot(RATSL62S, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(Weight), days 1-63")
+```
+As suspected, there is one outlier in each group. The data seems a bit skewed at least in the second and third group, so let's remove the outliers and see how it affects the boxplot.
+
+```{r}
+RATSL62S1 <- RATSL62S %>%
+  filter(mean < 575 & mean > 250 & mean!=495.2)
+
+ggplot(RATSL62S1, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(Weight), days 1-63")
+```
+There! Now there are no outliers in the data. 
+
+### 6.1.5 T test and Anova
+
+We can't perform a two-sample t test (we have three groups) on the data, so let's simply do the Anova analysis of a linear model including the baseline (day 1) data in our data without the outlier. Let's extract the day one data from the original data set by loading it. 
+
+```{r}
+RATS <- read.table("https://raw.githubusercontent.com/KimmoVehkalahti/MABS/master/Examples/data/rats.txt", header = TRUE, sep = '\t')
+RATS
+RATSL62S2 <- RATSL62S %>%
+  mutate(baseline = RATS$WD1)
+
+fit <- lm(mean ~ baseline + Group, data = RATSL62S2)
+
+anova(fit)
+```
+Note the significance of the baseline variable!
+
+### 6.2 The BPRS data
+
+Let's load the BPRS long form data, and factor the "treatment" and "subject" variables again. Let's also glimpse the data to get a look of it.
+
+```{r}
+BPRSL <- read.csv("data/bprsl.dat", header=TRUE)
+glimpse(BPRSL)
+BPRSL$treatment <- factor(BPRSL$treatment)
+BPRSL$subject <- factor(BPRSL$subject)
+glimpse(BPRSL)
+```
+
+```{r}
+ggplot(BPRSL, aes(x = week, y = bprs, linetype = subject)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(BPRSL$bprs), max(BPRSL$bprs)))
+```
+
